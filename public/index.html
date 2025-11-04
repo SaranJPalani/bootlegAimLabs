@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circle Clicker Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="game-info">
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="time">Time: <span id="time">30.0</span>s</div>
+        </div>
+        
+        <div id="game-area">
+            <div id="start-screen">
+                <input type="text" id="player-name" placeholder="Enter your name">
+                <button id="start-button">Start Game</button>
+            </div>
+        </div>
+
+        <div class="leaderboard">
+            <h2>Leaderboard</h2>
+            <div id="leaderboard-list"></div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
