@@ -82,16 +82,34 @@ app.post('/score', express.json(), async (req, res) => {
     const { player, score } = req.body;
     try {
         if (useInMemory) {
-            inMemoryLeaderboard.push({ player, score });
+            // keep only the best score per player in-memory
+            const idx = inMemoryLeaderboard.findIndex(e => e.player === player);
+            if (idx !== -1) {
+                // existing entry — update only if new score is greater
+                if (Number(score) > Number(inMemoryLeaderboard[idx].score)) {
+                    inMemoryLeaderboard[idx].score = Number(score);
+                } else {
+                    return res.json({ success: true, updated: false });
+                }
+            } else {
+                inMemoryLeaderboard.push({ player, score: Number(score) });
+            }
+
             inMemoryLeaderboard = inMemoryLeaderboard
                 .sort((a, b) => b.score - a.score)
                 .slice(0, 10);
-            return res.json({ success: true });
+            return res.json({ success: true, updated: true });
         }
 
-        // zAdd expects an array of entries in this client version
-        await client.zAdd('game:leaderboard', [{ score: score, value: player }]);
-        res.json({ success: true });
+        // For Redis: only update if new score is greater than existing score
+        const existing = await client.zScore('game:leaderboard', player);
+        if (existing === null || Number(score) > Number(existing)) {
+            await client.zAdd('game:leaderboard', [{ score: Number(score), value: player }]);
+            return res.json({ success: true, updated: true });
+        }
+
+        // no update performed because existing score is greater or equal
+        res.json({ success: true, updated: false });
     } catch (error) {
         console.error('Error saving score:', error);
         res.status(500).json({ error: 'Failed to save score' });
